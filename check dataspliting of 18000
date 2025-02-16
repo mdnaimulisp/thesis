@@ -1,0 +1,14 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
+train_class_counts = np.bincount(train_generator.classes)
+test_class_counts = np.bincount(test_generator.classes)
+
+plt.figure(figsize=(12, 5))
+plt.bar(range(len(train_class_counts)), train_class_counts, label="Train Set", alpha=0.7)
+plt.bar(range(len(test_class_counts)), test_class_counts, label="Test Set", alpha=0.7)
+plt.xlabel("Class Index")
+plt.ylabel("Number of Images")
+plt.title("Class Distribution in Train & Test Sets")
+plt.legend()
+plt.show()
