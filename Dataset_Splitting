@@ -1,0 +1,83 @@
+import os
+import shutil
+import random
+from pathlib import Path
+from sklearn.model_selection import train_test_split
+from concurrent.futures import ThreadPoolExecutor
+
+# Define dataset paths (main folder)
+dataset_path = Path(r"C:\Users\nsnai\folders\sadia_tanima_Naimul\dataset\dataset")
+output_path = Path(r"C:\Users\nsnai\folders\sadia_tanima_Naimul\dataset\split_dataset")
+
+# Define the split ratio
+train_ratio = 0.8
+
+# Paths for train and test folders
+train_path = output_path / "train"
+test_path = output_path / "test"
+
+# Create output directories if they don't exist
+train_path.mkdir(parents=True, exist_ok=True)
+test_path.mkdir(parents=True, exist_ok=True)
+
+# Allowed image extensions
+image_extensions = {".jpg", ".jpeg", ".png", ".bmp", ".gif"}
+
+
+def find_all_images(root_folder):
+    """ Recursively find all images in dataset subfolders (normalized, initial, filtered, augmented) """
+    class_images = {}
+    for subfolder in root_folder.iterdir():  # Iterate over subfolders
+        if subfolder.is_dir():
+            for class_folder in subfolder.iterdir():  # Iterate over class folders (0-35)
+                if class_folder.is_dir():
+                    class_name = class_folder.name  # Class label (0-35)
+                    images = [f for f in class_folder.glob("*") if f.suffix.lower() in image_extensions]
+
+                    if images:
+                        if class_name not in class_images:
+                            class_images[class_name] = []
+                        class_images[class_name].extend(images)  # Collect all images from different datasets
+    return class_images
+
+
+def copy_files(file_list, dest_folder):
+    """ Helper function to copy files using multiple threads """
+    with ThreadPoolExecutor() as executor:
+        for file in file_list:
+            dest_path = dest_folder / file.name
+            executor.submit(shutil.copy, file, dest_path)
+
+
+# Find images from all dataset subfolders
+class_image_dict = find_all_images(dataset_path)
+
+if not class_image_dict:
+    print("❌ No images found in the dataset! Please check the folder structure.")
+else:
+    total_train, total_test = 0, 0  # Counters for total images
+    for class_name, images in class_image_dict.items():
+        random.shuffle(images)  # Shuffle for randomness
+
+        # Split dataset into train and test
+        train_images, test_images = train_test_split(images, train_size=train_ratio, random_state=42)
+
+        # Create corresponding class directories
+        train_class_dir = train_path / class_name
+        test_class_dir = test_path / class_name
+        train_class_dir.mkdir(parents=True, exist_ok=True)
+        test_class_dir.mkdir(parents=True, exist_ok=True)
+
+        # Copy files
+        copy_files(train_images, train_class_dir)
+        copy_files(test_images, test_class_dir)
+
+        print(f"✅ Processed Class {class_name}: {len(train_images)} train, {len(test_images)} test")
+        total_train += len(train_images)
+        total_test += len(test_images)
+
+    print(f"\n🎯 **Final Split Completed!**")
+    print(f"📂 Train Set: {total_train} images")
+    print(f"📂 Test Set: {total_test} images")
+    print(f"🔹 Total Images: {total_train + total_test}")
+
