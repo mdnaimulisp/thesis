@@ -1,0 +1,26 @@
+import os
+import cv2
+import numpy as np
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
+# Define image size and batch size
+IMG_SIZE = (250, 250)
+BATCH_SIZE = 32
+
+# Data generators for training and validation
+train_datagen = ImageDataGenerator(rescale=1./255, rotation_range=20, zoom_range=0.2, horizontal_flip=True)
+test_datagen = ImageDataGenerator(rescale=1./255)
+
+train_generator = train_datagen.flow_from_directory(
+    r"C:\Users\nsnai\folders\Baustlipidataset\archive\splitting dataset\train",
+    target_size=IMG_SIZE,
+    batch_size=BATCH_SIZE,
+    class_mode='sparse'
+)
+
+test_generator = test_datagen.flow_from_directory(
+    r"C:\Users\nsnai\folders\Baustlipidataset\archive\splitting dataset\test",
+    target_size=IMG_SIZE,
+    batch_size=BATCH_SIZE,
+    class_mode='sparse'
+)
