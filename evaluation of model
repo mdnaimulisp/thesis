@@ -1,0 +1,7 @@
+# Evaluate the model
+test_loss, test_acc = model.evaluate(test_generator)
+print(f"Test Accuracy: {test_acc:.2f}")
+
+# Save the trained model
+model.save("vgg19_bangla_sign_language.h5")
+print("VGG-19 model saved successfully! ")
